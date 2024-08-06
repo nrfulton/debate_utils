@@ -1,0 +1,25 @@
+[project]
+name = "debate_utils"
+version = "1.0.0"
+description = "Utilities for working with debate files."
+dependencies = [
+    "jsonlines",
+    "numpy",
+    "tqdm",
+    "huggingface_hub",
+    "datasets",
+    "sentence_transformers",
+    "sqlite-vec"
+]
+authors = [
+    {name = "Nathan Fulton", email = "db8utils@nfulton.org"},
+    # YOUR NAME HERE!
+]
+
+[project.urls]
+Homepage = "https://db8.nfulton.org"
+
+[project.scripts]
+debate-cards-dedup = "debate_utils.cli.dedup:main"
+debate-cards-upload = "debate_utils.cli.upload:main"
+debate-tags-embed = "debate_utils.cli.embed_all_taglines:main"
