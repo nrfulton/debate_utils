@@ -9,7 +9,14 @@ dependencies = [
     "huggingface_hub",
     "datasets",
     "sentence_transformers",
-    "sqlite-vec"
+    "sqlite-vec",
+    "python-docx",
+    "matplotlib",
+    "plotly",
+    "scikit-learn",
+    "ipykernel",
+    "jupyter",
+    "ipywidgets",
 ]
 authors = [
     {name = "Nathan Fulton", email = "db8utils@nfulton.org"},
