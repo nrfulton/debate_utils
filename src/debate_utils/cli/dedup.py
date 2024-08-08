@@ -38,3 +38,14 @@ def exact_text_strategy(jsonl_file: str, outfile: str):
                 exact_hashes.add(exact_hash)
                 ofh.write(card_json)
     print(f"Deduplication of {jsonl_file} is complete.\n\tRetained: {round(unique / total, 3) * 100}% ({unique} cards)\n\tDropped: {total - unique} cards\n\tMismatched tags: {mismatch} cards\nSaved in: {outfile}")
+
+
+def exact_text_strategy_on_cards(cards: List[Card]):
+    exact_hashes = set()
+    unique_cards = []
+    for card in tqdm.tqdm(cards):
+        exact_hash = hashlib.md5(card.text_plain().encode()).hexdigest()
+        if exact_hash not in exact_hashes:
+            unique_cards.append(card)
+            exact_hashes.add(exact_hash)
+    return unique_cards
