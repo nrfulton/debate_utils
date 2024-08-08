@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import List, Set, Optional
+from typing import List, Set, Optional, Dict, Iterable
 from dataclasses import dataclass
 import json
 import jsonlines
 from io import FileIO
 import datasets
+import hashlib
 
 TextStyle = Enum('TextStyle', ["UNDERLINED", "EMPHASIS", "BOLD", "HILITE"])
 
@@ -40,9 +41,22 @@ class Card:
     cite_styles : List[TextStyle]
     additional_info: CardInfo
 
+    def checksum(self) -> int:
+        s = "".join(self.paragraphs) + self.tag + "".join(self.cite) + self.additional_info.sourece_file_md5sum_hexdigest
+        return hashlib.md5(s.encode()).hexdigest()
+
     # computed values.
     def text_plain(self) -> str:
         return "".join(self.paragraphs)
+    
+    def selected_text_plain(self) -> str:
+        selected_paragraphs = [p for (p,ss) in zip(self.paragraphs, self.paragraphs_styles) if len(ss) > 0]
+        if len(selected_paragraphs) > 0:
+            return "".join(selected_paragraphs)
+        else:
+            assert all([len(style_set) == 0 for style_set in self.paragraphs_styles])
+            return self.text_plain()
+
     
     def cite_plain(self):
         return "".join(self.cite)
@@ -102,10 +116,21 @@ class Card:
                 yield Card.from_parsed_json(line)
     
     @classmethod
-    def from_hf_dataset(cls, dataset_path="hspolicy/ndca_openev_2024_cards"):
+    def from_hf_dataset(cls, dataset_path="hspolicy/ndca_openev_2024_cards") -> Iterable['Card']:
         data = datasets.load_dataset(dataset_path)
         for item in data["train"]:
             yield(cls.from_parsed_json(item))
     
     def __str__(self) -> str:
         return self.tag + " (" + self.cite_plain() + ")"
+
+
+def sort_cards_into_files(cards: List[Card]) -> Dict[str, List[Card]]:
+    files = {}
+    for c in cards:
+        file_hash = c.additional_info.sourece_file_md5sum_hexdigest
+        if file_hash in files.keys():
+            files[file_hash].append(c)
+        else:
+            files[file_hash] = [ c ]
+    return files
