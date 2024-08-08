@@ -42,15 +42,17 @@ class CardRetreivalDatabase():
         db.enable_load_extension(False)
         db.execute(
             """
-                CREATE TABLE tags(
+                CREATE TABLE cards(
                 id INTEGER PRIMARY KEY,
-                tag TEXT
+                tag TEXT,
+                card_text TEXT,
+                cite TEXT
                 );
             """
         )
         with db:
             for i, card in enumerate(self.cards):
-                db.execute("INSERT INTO tags(id, tag) VALUES(?, ?)", [i, card.tag])
+                db.execute("INSERT INTO cards(id, tag, card_text, cite) VALUES(?, ?, ?)", [i, card.tag, card.text_plain(), card.cite_plain()])
         db.execute(
             f"""
                 CREATE VIRTUAL TABLE vec_tags USING vec0(
@@ -60,9 +62,9 @@ class CardRetreivalDatabase():
             """
         )
         with db:
-            tag_rows = db.execute("SELECT id, tag FROM tags").fetchall()
+            tag_rows = db.execute("SELECT id, tag, card_text, cite FROM cards").fetchall()
             embeddings = SentenceTransformer(self.model).encode([row[1] for row in tag_rows], show_progress_bar=True)
-            for (id, _), embedding in zip(tag_rows, embeddings):
+            for (id, _, _, _), embedding in zip(tag_rows, embeddings):
                 db.execute("INSERT INTO vec_tags(id, tag_embedding) VALUES(?, ?)", [id, serialize(embedding)])
         return db
     
